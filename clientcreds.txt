@@ -1,0 +1,12 @@
+Client ID:
+1000.W3I3XPNQ6MAMIH1B83WMB6O6O2W85D
+Client Secret:
+46f95a0ffa5da02959fc5787128bb5327856978a4a
+http://localhost:8080/callback
+
+Authorization code: 1000.9efc32269a434023912c1e4cb651e0da.3bf9c1f1d4da50d08baa42df78db21cb
+
+{"access_token":"1000.da9c279c6b1cf50f9d1ff48c7ee2a0f2.fc3ede6b35345dca83a30773870e89a7",
+"refresh_token":"1000.b2a758887f51075b5344d713fe53f442.a78e357c97a56492950a0b4aaf7353f0",
+"scope":"ZohoCRM.modules.ALL ZohoCRM.users.ALL ZohoCRM.settings.ALL",
+"api_domain":"https://www.zohoapis.in","token_type":"Bearer","expires_in":3600}
