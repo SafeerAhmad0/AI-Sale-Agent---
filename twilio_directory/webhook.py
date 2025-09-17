@@ -38,6 +38,20 @@ def twiml_response(response: VoiceResponse):
 # Routes
 # -------------------------------------------------------
 
+@app.route("/", methods=["GET"])
+def index():
+    """Root endpoint to verify service is running."""
+    return {
+        "status": "running",
+        "service": "AI Sales Agent Webhook",
+        "endpoints": [
+            "/twilio/voice/<lead_id>",
+            "/twilio/gather",
+            "/twilio/status",
+            "/twilio/recording"
+        ]
+    }
+
 @app.route("/twilio/voice/<lead_id>", methods=["POST"])
 def handle_voice(lead_id):
     """Initial handler when call connects."""
