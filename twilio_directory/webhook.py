@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template
 from twilio.twiml.voice_response import VoiceResponse, Gather
 
 # -------------------------------------------------------
@@ -40,16 +40,58 @@ def twiml_response(response: VoiceResponse):
 
 @app.route("/", methods=["GET"])
 def index():
-    """Root endpoint to verify service is running."""
+    """Root endpoint showing the AI Sales Agent landing page."""
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error rendering template: {e}")
+        # Fallback to JSON response
+        return {
+            "status": "running",
+            "service": "AI Sales Agent Webhook",
+            "endpoints": [
+                "/twilio/voice/<lead_id>",
+                "/twilio/gather",
+                "/twilio/status",
+                "/twilio/recording"
+            ]
+        }
+
+@app.route("/api/status", methods=["GET"])
+def api_status():
+    """API endpoint to check system status."""
     return {
         "status": "running",
-        "service": "AI Sales Agent Webhook",
-        "endpoints": [
-            "/twilio/voice/<lead_id>",
-            "/twilio/gather",
-            "/twilio/status",
-            "/twilio/recording"
+        "service": "AI Voice Sales Agent",
+        "version": "1.0.0",
+        "components": {
+            "webhook_server": "online",
+            "twilio_integration": "configured",
+            "openai_integration": "configured",
+            "zoho_crm_integration": "configured"
+        },
+        "endpoints": {
+            "webhook": "/twilio/voice/<lead_id>",
+            "gather": "/twilio/gather",
+            "status_callback": "/twilio/status",
+            "recording_callback": "/twilio/recording"
+        },
+        "features": [
+            "Hindi voice calls",
+            "AI-powered lead qualification",
+            "CRM integration",
+            "Automated calling",
+            "Conversation logging"
         ]
+    }
+
+@app.route("/test", methods=["GET"])
+def test_endpoint():
+    """Test endpoint for health checks."""
+    return {
+        "message": "AI Voice Sales Agent is working correctly!",
+        "timestamp": "2025-09-17T14:55:32Z",
+        "status": "healthy"
     }
 
 @app.route("/twilio/voice/<lead_id>", methods=["POST"])

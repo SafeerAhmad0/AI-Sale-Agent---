@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Sales Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .status-section {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .endpoints {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .endpoints h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+
+        .endpoint {
+            background: #e9ecef;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .tech-item {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 2rem 0;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Voice Sales Agent</h1>
+            <p>Intelligent Hindi Voice Sales Qualification System</p>
+        </div>
+
+        <div class="card">
+            <div class="status-section">
+                <span class="status-badge">✅ SYSTEM ONLINE</span>
+                <span>Service is running and ready to process calls</span>
+            </div>
+
+            <h2>System Overview</h2>
+            <p>Our AI Voice Sales Agent is an intelligent system that automatically qualifies leads using Hindi voice calls. It integrates Zoho CRM, Twilio Voice, and OpenAI GPT-4 to create a fully automated sales qualification pipeline.</p>
+        </div>
+
+        <div class="features">
+            <div class="card feature">
+                <div class="feature-icon">🤖</div>
+                <h3>AI-Powered</h3>
+                <p>Uses GPT-4 for dynamic, contextual sales questions and intelligent lead qualification</p>
+            </div>
+
+            <div class="card feature">
+                <div class="feature-icon">🇮🇳</div>
+                <h3>Hindi Voice</h3>
+                <p>Conducts sales calls in Hindi using advanced text-to-speech technology via Twilio</p>
+            </div>
+
+            <div class="card feature">
+                <div class="feature-icon">📞</div>
+                <h3>Automated Calling</h3>
+                <p>Places calls to leads automatically using Twilio's voice infrastructure</p>
+            </div>
+
+            <div class="card feature">
+                <div class="feature-icon">📊</div>
+                <h3>CRM Integration</h3>
+                <p>Fetches leads from and updates results back to Zoho CRM automatically</p>
+            </div>
+
+            <div class="card feature">
+                <div class="feature-icon">🧠</div>
+                <h3>Smart Qualification</h3>
+                <p>Determines lead qualification using BANT criteria (Budget, Authority, Need, Timeline)</p>
+            </div>
+
+            <div class="card feature">
+                <div class="feature-icon">📝</div>
+                <h3>Conversation Logging</h3>
+                <p>Records and analyzes all conversations for insights and optimization</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>How It Works</h2>
+            <ol style="padding-left: 2rem; line-height: 2;">
+                <li><strong>Lead Selection:</strong> System fetches next available lead from Zoho CRM</li>
+                <li><strong>Call Initiation:</strong> Twilio places call to lead's phone number</li>
+                <li><strong>Greeting:</strong> AI greets lead in Hindi and asks first question</li>
+                <li><strong>Dynamic Questions:</strong> GPT-4 generates contextual follow-up questions</li>
+                <li><strong>Qualification:</strong> After 3-4 exchanges, AI determines qualification</li>
+                <li><strong>CRM Update:</strong> Result is written back to Zoho CRM</li>
+                <li><strong>Next Lead:</strong> System moves to next lead automatically</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <div class="endpoints">
+                <h3>🔗 API Endpoints</h3>
+                <div class="endpoint">POST /twilio/voice/&lt;lead_id&gt; - Handle incoming calls</div>
+                <div class="endpoint">POST /twilio/gather - Process speech input</div>
+                <div class="endpoint">POST /twilio/status - Call status updates</div>
+                <div class="endpoint">POST /twilio/recording - Recording status updates</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Technology Stack</h2>
+            <div class="tech-stack">
+                <span class="tech-item">Python</span>
+                <span class="tech-item">Flask</span>
+                <span class="tech-item">OpenAI GPT-4</span>
+                <span class="tech-item">Twilio Voice API</span>
+                <span class="tech-item">Zoho CRM API</span>
+                <span class="tech-item">Gunicorn</span>
+                <span class="tech-item">Render</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with ❤️ using Python, Flask, Twilio, OpenAI, and Zoho CRM</p>
+            <p>AI Voice Sales Agent &copy; 2025</p>
+        </div>
+    </div>
+</body>
+</html>
