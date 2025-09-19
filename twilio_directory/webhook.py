@@ -352,6 +352,191 @@ def handle_recording():
 
 
 # -------------------------------------------------------
+# AI Sales Agent API Endpoints
+# -------------------------------------------------------
+
+@app.route("/api/calls/start-auto", methods=["POST"])
+def start_auto_calling():
+    """Start automated calling process."""
+    try:
+        from scheduler.call_scheduler import CallScheduler
+
+        scheduler = CallScheduler()
+        result = scheduler.start_auto_calling()
+
+        if result:
+            return {
+                "success": True,
+                "message": "Automated calling started successfully",
+                "active_leads": result.get("active_leads", 0)
+            }
+        else:
+            return {
+                "success": False,
+                "error": "No leads available for calling or scheduler already running"
+            }, 400
+
+    except Exception as e:
+        logger.error(f"Error starting auto-calling: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to start auto-calling: {str(e)}"
+        }, 500
+
+@app.route("/api/calls/test", methods=["POST"])
+def make_test_call():
+    """Make a test call to verify system functionality."""
+    try:
+        data = request.get_json() or {}
+        phone = data.get("phone", "+911234567890")  # Default test number
+
+        from twilio_directory.call import TwilioCallManager
+
+        twilio = TwilioCallManager()
+        call = twilio.make_call(phone, lead_id="test-call")
+
+        if call:
+            return {
+                "success": True,
+                "call_sid": call.sid,
+                "status": call.status,
+                "to": call.to
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to initiate test call"
+            }, 500
+
+    except Exception as e:
+        logger.error(f"Error making test call: {e}")
+        return {
+            "success": False,
+            "error": f"Test call failed: {str(e)}"
+        }, 500
+
+@app.route("/api/calls/initiate", methods=["POST"])
+def initiate_manual_call():
+    """Initiate a manual call to a specific number."""
+    try:
+        data = request.get_json()
+        if not data:
+            return {"success": False, "error": "No data provided"}, 400
+
+        phone = data.get("phone")
+        lead_name = data.get("lead_name", "Manual Call")
+
+        if not phone:
+            return {"success": False, "error": "Phone number is required"}, 400
+
+        from twilio_directory.call import TwilioCallManager
+
+        twilio = TwilioCallManager()
+        call = twilio.make_call(phone, lead_id=f"manual-{lead_name.lower().replace(' ', '-')}")
+
+        if call:
+            # Log the manual call
+            logger.info(f"Manual call initiated to {phone} for {lead_name}")
+
+            return {
+                "success": True,
+                "call_sid": call.sid,
+                "status": call.status,
+                "to": call.to,
+                "lead_name": lead_name
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to initiate call"
+            }, 500
+
+    except Exception as e:
+        logger.error(f"Error initiating manual call: {e}")
+        return {
+            "success": False,
+            "error": f"Call initiation failed: {str(e)}"
+        }, 500
+
+@app.route("/api/leads/next", methods=["GET"])
+def get_next_lead():
+    """Get the next available lead for calling."""
+    try:
+        from zoho.crm import ZohoCRM
+
+        crm = ZohoCRM()
+
+        # Check if CRM is configured
+        if not os.getenv('ZOHO_CLIENT_ID') or not os.getenv('ZOHO_REFRESH_TOKEN'):
+            return {
+                "success": False,
+                "error": "CRM not configured",
+                "lead": None
+            }
+
+        # Get leads that haven't been called yet
+        leads = crm.get_leads(limit=50)
+
+        if not leads:
+            return {
+                "success": True,
+                "message": "No leads available",
+                "lead": None
+            }
+
+        # Find first lead with phone number that hasn't been called recently
+        next_lead = None
+        for lead in leads:
+            if lead.get('Phone') and lead.get('Lead_Status') in ['New', 'Contacted', 'Qualified']:
+                next_lead = {
+                    "id": lead.get('id'),
+                    "name": f"{lead.get('First_Name', '')} {lead.get('Last_Name', '')}".strip(),
+                    "phone": lead.get('Phone'),
+                    "company": lead.get('Company'),
+                    "email": lead.get('Email'),
+                    "status": lead.get('Lead_Status'),
+                    "source": lead.get('Lead_Source'),
+                    "created": lead.get('Created_Time')
+                }
+                break
+
+        return {
+            "success": True,
+            "lead": next_lead,
+            "total_leads": len(leads)
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting next lead: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get next lead: {str(e)}",
+            "lead": None
+        }, 500
+
+@app.route("/api/calls/status", methods=["GET"])
+def get_call_status():
+    """Get current calling system status."""
+    try:
+        from scheduler.call_scheduler import CallScheduler
+
+        scheduler = CallScheduler()
+        status = scheduler.get_status()
+
+        return {
+            "success": True,
+            "status": status
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting call status: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get call status: {str(e)}"
+        }, 500
+
+
+# -------------------------------------------------------
 # Entrypoint for manual run
 # -------------------------------------------------------
 if __name__ == "__main__":

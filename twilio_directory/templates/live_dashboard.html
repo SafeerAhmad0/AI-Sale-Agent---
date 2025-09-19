@@ -282,6 +282,81 @@
         .notification.success { background: #28a745; }
         .notification.error { background: #dc3545; }
 
+        /* Call Interface Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-modal {
+            width: 100%;
+            margin-top: 10px;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -323,7 +398,23 @@
             </div>
         </div>
 
-        <!-- Controls -->
+        <!-- AI Sales Agent Controls -->
+        <div class="panel" style="margin-bottom: 30px;">
+            <div class="panel-header">
+                <h3>🤖 AI Sales Agent Controls</h3>
+            </div>
+            <div class="panel-content">
+                <div class="controls">
+                    <button class="btn" onclick="startAutoCalling()">▶️ Start Auto-Calling</button>
+                    <button class="btn btn-warning" onclick="pauseSystem()">⏸️ Pause System</button>
+                    <button class="btn btn-success" onclick="makeTestCall()">📞 Make Test Call</button>
+                    <button class="btn" onclick="getNextLead()">🎯 Get Next Lead</button>
+                    <button class="btn" onclick="showCallInterface()">📱 Manual Call Interface</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Controls -->
         <div class="controls">
             <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
             <button class="btn btn-success" onclick="testSystem()">🧪 Test System</button>
@@ -365,6 +456,43 @@
 
         <div class="last-updated" id="last-updated">
             Last updated: Never
+        </div>
+    </div>
+
+    <!-- Call Interface Modal -->
+    <div id="callModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📞 AI Sales Agent - Make Call</h3>
+                <button class="close" onclick="closeCallModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone-number" placeholder="+91 9876543210" required>
+            </div>
+
+            <div class="form-group">
+                <label>Lead Name (Optional)</label>
+                <input type="text" id="lead-name" placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+                <label>Lead ID (Optional)</label>
+                <input type="text" id="lead-id" placeholder="Lead ID from CRM">
+            </div>
+
+            <div class="form-group">
+                <label>Call Type</label>
+                <select id="call-type">
+                    <option value="qualification">Qualification Call</option>
+                    <option value="followup">Follow-up Call</option>
+                    <option value="test">Test Call</option>
+                </select>
+            </div>
+
+            <button class="btn btn-success btn-modal" onclick="initiateCall()">📞 Start AI Call</button>
+            <button class="btn btn-modal" onclick="closeCallModal()">Cancel</button>
         </div>
     </div>
 
@@ -572,6 +700,130 @@
             }
         }
 
+        // AI Sales Agent Functions
+        async function startAutoCalling() {
+            try {
+                showNotification('🚀 Starting automated calling...', 'success');
+
+                const response = await fetch('/api/calls/start-auto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(`✅ Auto-calling started! ${result.message}`, 'success');
+                } else {
+                    showNotification(`❌ Failed to start auto-calling: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function makeTestCall() {
+            try {
+                showNotification('📞 Making test call...', 'success');
+
+                const response = await fetch('/api/calls/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: '+911234567890' // Default test number
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(`✅ Test call initiated! Call SID: ${result.call_sid}`, 'success');
+                } else {
+                    showNotification(`❌ Test call failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getNextLead() {
+            try {
+                showNotification('🎯 Fetching next lead...', 'success');
+
+                const response = await fetch('/api/leads/next');
+                const result = await response.json();
+
+                if (response.ok && result.lead) {
+                    const lead = result.lead;
+                    showNotification(`📋 Next lead: ${lead.name} - ${lead.phone}`, 'success');
+
+                    // Update UI with lead info
+                    document.getElementById('lead-name').textContent = lead.name || 'No name';
+                    document.getElementById('lead-phone').textContent = lead.phone || 'No phone';
+                    document.getElementById('lead-company').textContent = lead.company || 'No company';
+                } else {
+                    showNotification('ℹ️ No leads available for calling', 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function openCallModal() {
+            document.getElementById('call-modal').style.display = 'block';
+        }
+
+        function closeCallModal() {
+            document.getElementById('call-modal').style.display = 'none';
+        }
+
+        async function initiateCall() {
+            const phone = document.getElementById('call-phone').value;
+            const leadName = document.getElementById('call-lead-name').value;
+
+            if (!phone) {
+                showNotification('❌ Please enter a phone number', 'error');
+                return;
+            }
+
+            try {
+                showNotification('📞 Initiating call...', 'success');
+
+                const response = await fetch('/api/calls/initiate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        lead_name: leadName || 'Manual Call'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(`✅ Call initiated! Call SID: ${result.call_sid}`, 'success');
+                    closeCallModal();
+
+                    // Clear form
+                    document.getElementById('call-phone').value = '';
+                    document.getElementById('call-lead-name').value = '';
+
+                    // Refresh data to show new call
+                    setTimeout(loadLiveData, 2000);
+                } else {
+                    showNotification(`❌ Call failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
         // Handle page visibility changes
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
@@ -581,6 +833,14 @@
                 startAutoRefresh();
             }
         });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('call-modal');
+            if (event.target == modal) {
+                closeCallModal();
+            }
+        }
     </script>
 </body>
 </html>
