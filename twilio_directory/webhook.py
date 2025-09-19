@@ -40,7 +40,13 @@ def twiml_response(response: VoiceResponse):
 
 @app.route("/", methods=["GET"])
 def index():
-    """Root endpoint showing the AI Sales Agent landing page."""
+    """Root endpoint - redirect to dashboard."""
+    from flask import redirect
+    return redirect('/dashboard')
+
+@app.route("/landing", methods=["GET"])
+def landing():
+    """Landing page showing the AI Sales Agent info."""
     try:
         return render_template('index.html')
     except Exception as e:
