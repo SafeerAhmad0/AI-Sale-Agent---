@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales Agent - System Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-tab:hover {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .detail-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .detail-section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .config-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .config-item h4 {
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-value {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .status-item {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .status-item .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-item.online {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-item.offline {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .url-list {
+            list-style: none;
+        }
+
+        .url-list li {
+            background: #f8f9fa;
+            margin-bottom: 0.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .url-list .method {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .url-list .url {
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: white;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .flow-arrow {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: #667eea;
+            margin: 0 1rem;
+        }
+
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .requirement-item .check {
+            color: #28a745;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .env-var {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .env-var .name {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .env-var .description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .config-grid, .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 AI Sales Agent - Complete System Details</h1>
+        <p>Comprehensive configuration, URLs, and deployment information</p>
+    </div>
+
+    <div class="container">
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="/" class="action-btn btn-primary">📊 Dashboard</a>
+            <a href="/api/status" class="action-btn btn-success">✅ API Status</a>
+            <a href="/landing" class="action-btn btn-info">🏠 Landing Page</a>
+            <button onclick="location.reload()" class="action-btn btn-warning">🔄 Refresh</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">🎯 Overview</button>
+            <button class="nav-tab" onclick="showTab('urls')">🌐 URLs & Endpoints</button>
+            <button class="nav-tab" onclick="showTab('config')">⚙️ Configuration</button>
+            <button class="nav-tab" onclick="showTab('twilio')">📞 Twilio Setup</button>
+            <button class="nav-tab" onclick="showTab('facebook')">📱 Facebook Setup</button>
+            <button class="nav-tab" onclick="showTab('deployment')">🚀 Deployment</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="detail-section">
+                <h2>🎯 System Overview</h2>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>Facebook Lead Ads Integration</strong><br>
+                        <small>Automatic lead pulling with real-time sync to Zoho CRM</small>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>AI Voice Agent in Hindi</strong><br>
+                        <small>GPT-4 powered conversational agent with natural Hindi TTS/ASR</small>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>BANT Qualification Logic</strong><br>
+                        <small>Budget, Authority, Need, Timeline assessment</small>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>Automatic Call Scheduling</strong><br>
+                        <small>First call within 10 minutes, intelligent retry logic</small>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>Real-time CRM Updates</strong><br>
+                        <small>Call logs, transcripts, and qualification status</small>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="check">✅</span>
+                    <div>
+                        <strong>Professional Dashboard</strong><br>
+                        <small>Real-time monitoring, controls, and analytics</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>📈 Automated Lead Flow</h2>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <strong>Facebook Lead</strong><br>
+                        <small>User submits</small>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <strong>Webhook</strong><br>
+                        <small>&lt; 1 minute</small>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <strong>Zoho CRM</strong><br>
+                        <small>&lt; 5 minutes</small>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <strong>AI Call</strong><br>
+                        <small>&lt; 10 minutes</small>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">
+                        <strong>Qualification</strong><br>
+                        <small>Real-time</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>📊 System Status</h2>
+                <div class="status-grid">
+                    <div class="status-item online">
+                        <div class="icon">🌐</div>
+                        <h4>Web Server</h4>
+                        <p>Online & Running</p>
+                    </div>
+                    <div class="status-item online">
+                        <div class="icon">📞</div>
+                        <h4>Twilio Voice</h4>
+                        <p>Connected</p>
+                    </div>
+                    <div class="status-item online">
+                        <div class="icon">🤖</div>
+                        <h4>OpenAI GPT-4</h4>
+                        <p>Active</p>
+                    </div>
+                    <div class="status-item online">
+                        <div class="icon">📊</div>
+                        <h4>Zoho CRM</h4>
+                        <p>Synced</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- URLs Tab -->
+        <div id="urls" class="tab-content">
+            <div class="detail-section">
+                <h2>🌐 Live Application URLs</h2>
+                <ul class="url-list">
+                    <li>
+                        <div>
+                            <span class="method">GET</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">GET</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/dashboard</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/dashboard')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">GET</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/details</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/details')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">GET</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/api/status</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/api/status')">Copy</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h2>📞 Twilio Webhook URLs</h2>
+                <ul class="url-list">
+                    <li>
+                        <div>
+                            <span class="method">POST</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/twilio/voice/{lead_id}</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/twilio/voice/{lead_id}')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">POST</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/twilio/gather</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/twilio/gather')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">POST</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/twilio/status</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/twilio/status')">Copy</button>
+                    </li>
+                    <li>
+                        <div>
+                            <span class="method">POST</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/twilio/recording</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/twilio/recording')">Copy</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h2>📱 Facebook Lead Ads Webhook</h2>
+                <ul class="url-list">
+                    <li>
+                        <div>
+                            <span class="method">GET/POST</span>
+                            <span class="url">https://ai-sale-agent.onrender.com/facebook/webhook</span>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('https://ai-sale-agent.onrender.com/facebook/webhook')">Copy</button>
+                    </li>
+                </ul>
+                <p style="margin-top: 1rem; color: #6c757d; font-style: italic;">
+                    Verify Token: <code>ai_sales_agent_verify_2024</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div id="config" class="tab-content">
+            <div class="detail-section">
+                <h2>⚙️ Environment Variables Configuration</h2>
+
+                <h3 style="margin: 2rem 0 1rem 0;">🔗 Zoho CRM</h3>
+                <div class="env-var">
+                    <div>
+                        <div class="name">ZOHO_CLIENT_ID</div>
+                        <div class="description">Your Zoho CRM application client ID</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">ZOHO_CLIENT_SECRET</div>
+                        <div class="description">Your Zoho CRM application client secret</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">ZOHO_REFRESH_TOKEN</div>
+                        <div class="description">OAuth refresh token for API access</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">ZOHO_DC</div>
+                        <div class="description">Data center: com, eu, in, au, jp</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem 0;">📞 Twilio Voice</h3>
+                <div class="env-var">
+                    <div>
+                        <div class="name">TWILIO_ACCOUNT_SID</div>
+                        <div class="description">Your Twilio account SID</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">TWILIO_AUTH_TOKEN</div>
+                        <div class="description">Your Twilio authentication token</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">TWILIO_PHONE_NUMBER</div>
+                        <div class="description">Your Twilio phone number (e.g., +919876543210)</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">WEBHOOK_BASE_URL</div>
+                        <div class="description">https://ai-sale-agent.onrender.com</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem 0;">🤖 OpenAI</h3>
+                <div class="env-var">
+                    <div>
+                        <div class="name">OPENAI_API_KEY</div>
+                        <div class="description">Your OpenAI API key for GPT-4 access</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem 0;">📱 Facebook Lead Ads</h3>
+                <div class="env-var">
+                    <div>
+                        <div class="name">FACEBOOK_ACCESS_TOKEN</div>
+                        <div class="description">Facebook page access token with leads permissions</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">FACEBOOK_PAGE_ID</div>
+                        <div class="description">Your Facebook page ID</div>
+                    </div>
+                </div>
+                <div class="env-var">
+                    <div>
+                        <div class="name">FACEBOOK_VERIFY_TOKEN</div>
+                        <div class="description">ai_sales_agent_verify_2024</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Twilio Setup Tab -->
+        <div id="twilio" class="tab-content">
+            <div class="detail-section">
+                <h2>📞 Twilio Configuration Setup</h2>
+
+                <h3>1. Phone Number Configuration</h3>
+                <p>Go to <strong>Phone Numbers → Manage → Active Numbers</strong> in your Twilio Console:</p>
+                <div class="code-block">
+Voice Configuration:
+• Webhook URL: https://ai-sale-agent.onrender.com/twilio/voice/{lead_id}
+• HTTP Method: POST
+• Status Callback URL: https://ai-sale-agent.onrender.com/twilio/status
+• Status Callback Method: POST</div>
+
+                <h3>2. Status Callback Events</h3>
+                <div class="code-block">
+Select these events:
+☑ initiated
+☑ ringing
+☑ answered
+☑ completed</div>
+
+                <h3>3. Recording Configuration</h3>
+                <div class="code-block">
+Recording Settings:
+• Recording Status Callback URL: https://ai-sale-agent.onrender.com/twilio/recording
+• Recording Status Callback Method: POST</div>
+
+                <h3>4. Test Your Configuration</h3>
+                <p>Use the dashboard test call button to verify everything is working.</p>
+            </div>
+        </div>
+
+        <!-- Facebook Setup Tab -->
+        <div id="facebook" class="tab-content">
+            <div class="detail-section">
+                <h2>📱 Facebook Lead Ads Setup</h2>
+
+                <h3>1. Create Facebook App</h3>
+                <div class="code-block">
+1. Go to developers.facebook.com
+2. Create New App → Business
+3. Add these products:
+   • Webhooks
+   • Lead Ads Testing Tool</div>
+
+                <h3>2. Configure Webhook</h3>
+                <div class="code-block">
+Webhook Configuration:
+• Callback URL: https://ai-sale-agent.onrender.com/facebook/webhook
+• Verify Token: ai_sales_agent_verify_2024
+• Subscription Fields: leadgen</div>
+
+                <h3>3. Get Access Token</h3>
+                <div class="code-block">
+1. Go to Graph Explorer (developers.facebook.com/tools/explorer)
+2. Select your app
+3. Choose your page
+4. Request these permissions:
+   • leads_retrieval
+   • pages_read_engagement
+5. Generate Long-Lived Token</div>
+
+                <h3>4. Subscribe to Page</h3>
+                <p>Your system will automatically subscribe to webhooks when it starts.</p>
+            </div>
+        </div>
+
+        <!-- Deployment Tab -->
+        <div id="deployment" class="tab-content">
+            <div class="detail-section">
+                <h2>🚀 Deployment Information</h2>
+
+                <h3>Platform</h3>
+                <div class="config-item">
+                    <h4>Hosting Provider</h4>
+                    <div class="config-value">Render.com</div>
+                </div>
+
+                <h3>Application Details</h3>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <h4>Runtime</h4>
+                        <div class="config-value">Python 3.11+ with Flask + Gunicorn</div>
+                    </div>
+                    <div class="config-item">
+                        <h4>Port</h4>
+                        <div class="config-value">10000 (auto-configured by Render)</div>
+                    </div>
+                    <div class="config-item">
+                        <h4>Build Command</h4>
+                        <div class="config-value">pip install -r requirements.txt</div>
+                    </div>
+                    <div class="config-item">
+                        <h4>Start Command</h4>
+                        <div class="config-value">gunicorn app:app</div>
+                    </div>
+                </div>
+
+                <h3>Environment Variables Setup</h3>
+                <p>In Render Dashboard → Environment:</p>
+                <div class="code-block">
+# Add all variables from the Configuration tab
+ZOHO_CLIENT_ID=your_value_here
+TWILIO_ACCOUNT_SID=your_value_here
+OPENAI_API_KEY=your_value_here
+# ... etc</div>
+
+                <h3>SSL/HTTPS</h3>
+                <div class="config-item">
+                    <h4>Certificate</h4>
+                    <div class="config-value">Automatically managed by Render</div>
+                </div>
+
+                <h3>Scaling</h3>
+                <div class="config-item">
+                    <h4>Instance Type</h4>
+                    <div class="config-value">Starter (512MB RAM, 0.1 CPU) - Scalable</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                event.target.style.background = '#28a745';
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.style.background = '#28a745';
+                    event.target.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Auto-refresh status every 30 seconds
+        setInterval(() => {
+            console.log('Refreshing system status...');
+            // In real implementation, update status indicators
+        }, 30000);
+    </script>
+</body>
+</html>

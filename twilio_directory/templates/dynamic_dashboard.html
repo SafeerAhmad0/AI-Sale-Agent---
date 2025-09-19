@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales Agent - Live Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .change {
+            font-size: 0.85rem;
+            color: #28a745;
+        }
+
+        .metric-card.no-data {
+            opacity: 0.6;
+            border-left-color: #ccc;
+        }
+
+        .metric-card.no-data .value {
+            color: #999;
+        }
+
+        .metric-card.no-data .change {
+            color: #999;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            color: #495057;
+            font-size: 1.1rem;
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+        }
+
+        .lead-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .lead-item:last-child {
+            border-bottom: none;
+        }
+
+        .lead-info h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .lead-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .lead-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-calling { background: #fff3e0; color: #f57c00; }
+        .status-qualified { background: #e8f5e8; color: #2e7d32; }
+        .status-disqualified { background: #ffebee; color: #d32f2f; }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.call { background: #e3f2fd; color: #1976d2; }
+        .activity-icon.lead { background: #e8f5e8; color: #2e7d32; }
+        .activity-icon.error { background: #ffebee; color: #d32f2f; }
+
+        .activity-content h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-content p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        .notification.info { background: #17a2b8; }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .last-updated {
+            color: #6c757d;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Sales Agent - Live Dashboard</h1>
+        <div class="status">
+            <div class="status-dot"></div>
+            <span id="system-status">Loading system status...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Display -->
+        <div id="error-container"></div>
+
+        <!-- Metrics Overview -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Today's Leads</h3>
+                <div class="value" id="todays-leads">
+                    <div class="loading"></div>
+                </div>
+                <div class="change" id="leads-change">Loading...</div>
+            </div>
+            <div class="metric-card">
+                <h3>Calls Made</h3>
+                <div class="value" id="calls-made">
+                    <div class="loading"></div>
+                </div>
+                <div class="change" id="calls-change">Loading...</div>
+            </div>
+            <div class="metric-card">
+                <h3>Qualified Leads</h3>
+                <div class="value" id="qualified-leads">
+                    <div class="loading"></div>
+                </div>
+                <div class="change" id="qualified-change">Loading...</div>
+            </div>
+            <div class="metric-card">
+                <h3>Revenue Pipeline</h3>
+                <div class="value" id="revenue-pipeline">
+                    <div class="loading"></div>
+                </div>
+                <div class="change" id="revenue-change">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="controls">
+            <button class="btn btn-primary" id="start-btn" onclick="executeAction('start_calling')">▶️ Start Auto-Calling</button>
+            <button class="btn btn-warning" id="pause-btn" onclick="executeAction('pause_system')">⏸️ Pause System</button>
+            <button class="btn btn-success" id="test-btn" onclick="executeAction('test_call')">📞 Test Call</button>
+            <button class="btn btn-danger" id="stop-btn" onclick="executeAction('stop_calls')">⏹️ Stop All Calls</button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>📊 Performance Analytics</h3>
+                    <div class="loading" id="chart-loading"></div>
+                </div>
+                <div class="panel-content">
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>🎯 Recent Leads</h3>
+                    <div class="loading" id="leads-loading"></div>
+                </div>
+                <div class="panel-content">
+                    <div id="recent-leads">
+                        <p style="color: #666; text-align: center;">Loading recent leads...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>📈 Live Activity Feed</h3>
+                <div class="loading" id="activity-loading"></div>
+            </div>
+            <div class="panel-content">
+                <div class="activity-feed" id="activity-feed">
+                    <p style="color: #666; text-align: center;">Loading activity feed...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-updated" id="last-updated">
+            Last updated: Loading...
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let performanceChart = null;
+        let refreshInterval = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            startAutoRefresh();
+        });
+
+        async function loadDashboardData() {
+            try {
+                showLoading(true);
+                const response = await fetch('/api/dashboard/data');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+
+                updateDashboard(data);
+                clearError();
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showError(`Failed to load dashboard data: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update metrics - only show if data exists
+            updateMetric('todays-leads', data.metrics.todays_leads, 'leads-change',
+                data.metrics.todays_leads !== null ? `${data.metrics.todays_leads} new today` : 'No leads yet');
+
+            updateMetric('calls-made', data.metrics.calls_made, 'calls-change',
+                data.metrics.connection_rate !== null ? `${data.metrics.connection_rate}% connection rate` : 'No calls yet');
+
+            updateMetric('qualified-leads', data.metrics.qualified_leads, 'qualified-change',
+                data.metrics.qualification_rate !== null ? `${data.metrics.qualification_rate}% qualification rate` : 'No qualified leads yet');
+
+            updateMetric('revenue-pipeline',
+                data.metrics.revenue_pipeline !== null ? `₹${(data.metrics.revenue_pipeline / 100000).toFixed(1)}L` : null,
+                'revenue-change',
+                data.metrics.revenue_pipeline !== null ? 'Pipeline value' : 'No revenue data');
+
+            // Update system status
+            document.getElementById('system-status').textContent = 'System Online - Ready';
+
+            // Update recent leads
+            updateRecentLeads(data.recent_leads);
+
+            // Update activity feed
+            updateActivityFeed(data.recent_activity);
+
+            // Update chart
+            updateChart(data.chart_data);
+
+            // Update timestamp
+            const lastUpdated = new Date(data.timestamp).toLocaleTimeString();
+            document.getElementById('last-updated').textContent = `Last updated: ${lastUpdated}`;
+        }
+
+        function updateMetric(valueId, value, changeId, changeText) {
+            const valueElement = document.getElementById(valueId);
+            const changeElement = document.getElementById(changeId);
+            const cardElement = valueElement.closest('.metric-card');
+
+            if (value !== null && value !== undefined) {
+                valueElement.textContent = value;
+                cardElement.classList.remove('no-data');
+            } else {
+                valueElement.textContent = '-';
+                cardElement.classList.add('no-data');
+            }
+
+            changeElement.textContent = changeText;
+        }
+
+        function updateRecentLeads(leads) {
+            const container = document.getElementById('recent-leads');
+
+            if (!leads || leads.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">No leads in system yet</p>';
+                return;
+            }
+
+            container.innerHTML = leads.map(lead => {
+                const phone = lead.phone ? lead.phone : 'No phone';
+                const company = lead.company ? lead.company : 'No company';
+                return `
+                    <div class="lead-item">
+                        <div class="lead-info">
+                            <h4>${lead.name}</h4>
+                            <p>${phone} • ${company}</p>
+                        </div>
+                        <span class="lead-status status-${lead.status}">${lead.status.replace('_', ' ').toUpperCase()}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateActivityFeed(activities) {
+            const container = document.getElementById('activity-feed');
+
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">No activity yet - system ready to start</p>';
+                return;
+            }
+
+            container.innerHTML = activities.map(activity => {
+                const timeAgo = getTimeAgo(new Date(activity.timestamp));
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.type}">${activity.icon}</div>
+                        <div class="activity-content">
+                            <h4>${activity.title}</h4>
+                            <p>${timeAgo} • ${activity.description}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateChart(chartData) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            // If no chart data, show placeholder
+            if (!chartData || !chartData.calls || chartData.calls.every(val => val === 0)) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = '16px Segoe UI';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No call data yet - start making calls to see analytics', ctx.canvas.width/2, ctx.canvas.height/2);
+                return;
+            }
+
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Calls Made',
+                        data: chartData.calls,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Qualified',
+                        data: chartData.qualified,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function executeAction(action) {
+            try {
+                // Disable all buttons
+                setButtonsDisabled(true);
+
+                const response = await fetch('/api/controls', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: action })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showNotification(result.message, 'success');
+                    // Refresh data after action
+                    setTimeout(loadDashboardData, 1000);
+                } else {
+                    showNotification(result.message, 'error');
+                }
+
+            } catch (error) {
+                console.error('Error executing action:', error);
+                showNotification(`Failed to execute action: ${error.message}`, 'error');
+            } finally {
+                // Re-enable buttons after 2 seconds
+                setTimeout(() => setButtonsDisabled(false), 2000);
+            }
+        }
+
+        function setButtonsDisabled(disabled) {
+            document.getElementById('start-btn').disabled = disabled;
+            document.getElementById('pause-btn').disabled = disabled;
+            document.getElementById('test-btn').disabled = disabled;
+            document.getElementById('stop-btn').disabled = disabled;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                    <button onclick="loadDashboardData()" style="float: right; background: none; border: none; color: #721c24; cursor: pointer;">↻ Retry</button>
+                </div>
+            `;
+        }
+
+        function clearError() {
+            document.getElementById('error-container').innerHTML = '';
+        }
+
+        function showLoading(show) {
+            const elements = ['chart-loading', 'leads-loading', 'activity-loading'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = show ? 'block' : 'none';
+                }
+            });
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minutes ago`;
+
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hours ago`;
+
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays} days ago`;
+        }
+
+        function startAutoRefresh() {
+            refreshInterval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                loadDashboardData();
+                startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -96,12 +96,31 @@ def facebook_webhook():
 
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
-    """AI Sales Agent Dashboard."""
+    """AI Sales Agent Dashboard - Simple with only working APIs."""
     try:
-        return render_template('dashboard.html')
+        return render_template('simple_dashboard.html')
     except Exception as e:
         logger.error(f"Error rendering dashboard: {e}")
         return {"error": "Dashboard template not found"}, 500
+
+@app.route("/dashboard/static", methods=["GET"])
+def static_dashboard():
+    """Static demo dashboard."""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Error rendering static dashboard: {e}")
+        return {"error": "Dashboard template not found"}, 500
+
+@app.route("/details", methods=["GET"])
+def system_details():
+    """Complete system details and configuration page."""
+    try:
+        return render_template('details.html')
+    except Exception as e:
+        logger.error(f"Error rendering details page: {e}")
+        return {"error": "Details template not found"}, 500
+
 
 @app.route("/api/status", methods=["GET"])
 def api_status():
