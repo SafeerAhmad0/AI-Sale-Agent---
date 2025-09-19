@@ -360,21 +360,44 @@ def start_auto_calling():
     """Start automated calling process."""
     try:
         from scheduler.call_scheduler import CallScheduler
+        from zoho.crm import ZohoCRM
 
-        scheduler = CallScheduler()
-        result = scheduler.start_auto_calling()
+        # First get leads to schedule
+        crm = ZohoCRM()
 
-        if result:
-            return {
-                "success": True,
-                "message": "Automated calling started successfully",
-                "active_leads": result.get("active_leads", 0)
-            }
-        else:
+        # Check if CRM is configured
+        if not os.getenv('ZOHO_CLIENT_ID') or not os.getenv('ZOHO_REFRESH_TOKEN'):
             return {
                 "success": False,
-                "error": "No leads available for calling or scheduler already running"
+                "error": "CRM not configured - cannot start auto-calling"
             }, 400
+
+        # Get leads for auto-calling
+        leads = crm.get_leads(limit=100)
+
+        if not leads:
+            return {
+                "success": False,
+                "error": "No leads available for calling"
+            }, 400
+
+        # Start scheduler
+        scheduler = CallScheduler()
+        scheduler.start_scheduler()
+
+        # Schedule immediate calls for new leads
+        scheduled_count = 0
+        for lead in leads:
+            if lead.get('Phone') and lead.get('Lead_Status') in ['New', 'Contacted']:
+                scheduler.schedule_immediate_call(lead.get('id'), lead)
+                scheduled_count += 1
+
+        return {
+            "success": True,
+            "message": f"Auto-calling started with {scheduled_count} leads scheduled",
+            "active_leads": scheduled_count,
+            "total_leads": len(leads)
+        }
 
     except Exception as e:
         logger.error(f"Error starting auto-calling: {e}")
@@ -393,14 +416,14 @@ def make_test_call():
         from twilio_directory.call import TwilioCallManager
 
         twilio = TwilioCallManager()
-        call = twilio.make_call(phone, lead_id="test-call")
+        call_result = twilio.initiate_call(phone, "test-call", "Test Call")
 
-        if call:
+        if call_result:
             return {
                 "success": True,
-                "call_sid": call.sid,
-                "status": call.status,
-                "to": call.to
+                "call_sid": call_result["call_sid"],
+                "status": call_result["status"],
+                "to": call_result["to"]
             }
         else:
             return {
@@ -432,17 +455,18 @@ def initiate_manual_call():
         from twilio_directory.call import TwilioCallManager
 
         twilio = TwilioCallManager()
-        call = twilio.make_call(phone, lead_id=f"manual-{lead_name.lower().replace(' ', '-')}")
+        lead_id = f"manual-{lead_name.lower().replace(' ', '-')}"
+        call_result = twilio.initiate_call(phone, lead_id, lead_name)
 
-        if call:
+        if call_result:
             # Log the manual call
             logger.info(f"Manual call initiated to {phone} for {lead_name}")
 
             return {
                 "success": True,
-                "call_sid": call.sid,
-                "status": call.status,
-                "to": call.to,
+                "call_sid": call_result["call_sid"],
+                "status": call_result["status"],
+                "to": call_result["to"],
                 "lead_name": lead_name
             }
         else:
@@ -521,11 +545,12 @@ def get_call_status():
         from scheduler.call_scheduler import CallScheduler
 
         scheduler = CallScheduler()
-        status = scheduler.get_status()
+        status = scheduler.get_queue_status()
 
         return {
             "success": True,
-            "status": status
+            "status": status,
+            "message": f"Scheduler running: {status['is_running']}, Active calls: {status['active_calls']}"
         }
 
     except Exception as e:
