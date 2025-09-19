@@ -372,8 +372,19 @@ def start_auto_calling():
                 "error": "CRM not configured - cannot start auto-calling"
             }, 400
 
-        # Get leads for auto-calling
-        leads = crm.get_leads(limit=100)
+        # Get leads for auto-calling (try multiple statuses)
+        leads = []
+
+        # Try different statuses to find available leads
+        for status in ['New', 'Contacted', 'Qualified', None]:  # None = all leads
+            leads = crm.get_leads(status=status, limit=100)
+            if leads:
+                logger.info(f"Found {len(leads)} leads with status: {status or 'Any'}")
+                break
+
+        # If still no leads, try without any status filter
+        if not leads:
+            leads = crm.get_leads(status=None, limit=100)
 
         if not leads:
             return {
@@ -538,6 +549,66 @@ def get_next_lead():
             "lead": None
         }, 500
 
+@app.route("/api/debug/crm", methods=["GET"])
+def debug_crm():
+    """Debug endpoint to check CRM connection and leads"""
+    try:
+        from zoho.crm import ZohoCRM
+
+        # Check environment variables
+        env_status = {
+            'ZOHO_CLIENT_ID': bool(os.getenv('ZOHO_CLIENT_ID')),
+            'ZOHO_REFRESH_TOKEN': bool(os.getenv('ZOHO_REFRESH_TOKEN')),
+            'ZOHO_CLIENT_SECRET': bool(os.getenv('ZOHO_CLIENT_SECRET')),
+            'ZOHO_DC': os.getenv('ZOHO_DC', 'com')
+        }
+
+        if not env_status['ZOHO_CLIENT_ID'] or not env_status['ZOHO_REFRESH_TOKEN']:
+            return {
+                "success": False,
+                "error": "CRM credentials not configured",
+                "env_status": env_status
+            }
+
+        crm = ZohoCRM()
+
+        # Test connection
+        connection_test = crm.test_connection()
+
+        # Try to get leads with different statuses
+        lead_counts = {}
+        for status in ['New', 'Contacted', 'Qualified', None]:
+            try:
+                leads = crm.get_leads(status=status, limit=10)
+                lead_counts[status or 'All'] = len(leads) if leads else 0
+
+                # Show sample lead data for first status that has leads
+                if leads and 'sample_lead' not in locals():
+                    sample_lead = {
+                        'id': leads[0].get('id'),
+                        'name': f"{leads[0].get('First_Name', '')} {leads[0].get('Last_Name', '')}".strip(),
+                        'phone': leads[0].get('Phone'),
+                        'status': leads[0].get('Lead_Status'),
+                        'company': leads[0].get('Company')
+                    }
+            except Exception as e:
+                lead_counts[status or 'All'] = f"Error: {str(e)}"
+
+        return {
+            "success": True,
+            "env_status": env_status,
+            "connection_test": connection_test,
+            "lead_counts": lead_counts,
+            "sample_lead": locals().get('sample_lead', 'No leads found')
+        }
+
+    except Exception as e:
+        logger.error(f"Debug CRM error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 @app.route("/api/calls/status", methods=["GET"])
 def get_call_status():
     """Get current calling system status."""
@@ -558,6 +629,115 @@ def get_call_status():
         return {
             "success": False,
             "error": f"Failed to get call status: {str(e)}"
+        }, 500
+
+@app.route("/api/calls/active", methods=["GET"])
+def get_active_calls():
+    """Get currently active/ongoing calls."""
+    try:
+        from twilio_directory.call import TwilioCallManager
+
+        twilio = TwilioCallManager()
+
+        # Get recent calls that might still be active
+        recent_calls = twilio.get_call_logs(limit=20)
+
+        # Filter for active calls (in-progress, ringing, etc.)
+        active_calls = []
+        for call in recent_calls:
+            if call['status'] in ['ringing', 'in-progress', 'queued']:
+                active_calls.append({
+                    'sid': call['sid'],
+                    'to': call['to'],
+                    'status': call['status'],
+                    'start_time': call['start_time'].isoformat() if call['start_time'] else None,
+                    'duration': call['duration']
+                })
+
+        return {
+            "success": True,
+            "calls": active_calls,
+            "count": len(active_calls)
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting active calls: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get active calls: {str(e)}",
+            "calls": []
+        }, 500
+
+@app.route("/api/recordings", methods=["GET"])
+def get_recordings():
+    """Get call recordings from Twilio."""
+    try:
+        from twilio_directory.call import TwilioCallManager
+
+        twilio = TwilioCallManager()
+
+        # Get recordings from Twilio
+        recordings = twilio.client.recordings.list(limit=50)
+
+        recording_list = []
+        for recording in recordings:
+            # Get the call details for this recording
+            call_sid = recording.call_sid
+            try:
+                call = twilio.client.calls(call_sid).fetch()
+                phone = call.to
+            except:
+                phone = "Unknown"
+
+            recording_list.append({
+                'sid': recording.sid,
+                'call_sid': recording.call_sid,
+                'phone': phone,
+                'duration': recording.duration,
+                'date_created': recording.date_created.isoformat() if recording.date_created else None,
+                'uri': f"https://api.twilio.com{recording.uri}",
+                'media_url': recording.media_url
+            })
+
+        return {
+            "success": True,
+            "recordings": recording_list,
+            "count": len(recording_list)
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting recordings: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get recordings: {str(e)}",
+            "recordings": []
+        }, 500
+
+@app.route("/api/calls/end/<call_sid>", methods=["POST"])
+def end_call(call_sid):
+    """End an active call."""
+    try:
+        from twilio_directory.call import TwilioCallManager
+
+        twilio = TwilioCallManager()
+        success = twilio.end_call(call_sid)
+
+        if success:
+            return {
+                "success": True,
+                "message": f"Call {call_sid} ended successfully"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to end call"
+            }, 500
+
+    except Exception as e:
+        logger.error(f"Error ending call {call_sid}: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to end call: {str(e)}"
         }, 500
 
 

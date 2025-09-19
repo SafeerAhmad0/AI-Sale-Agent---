@@ -17,18 +17,18 @@ class ZohoCRM:
         """Fetch leads with specified status"""
         try:
             url = f"{self.base_url}/Leads"
-            
+
             # Build query parameters
             params = {
                 'fields': 'id,Lead_Owner,Company,First_Name,Last_Name,Phone,Email,Lead_Status,Lead_Source,Industry,Annual_Revenue,No_of_Employees,Description',
-                'per_page': limit
+                'per_page': limit,
+                'sort_order': 'desc',
+                'sort_by': 'Created_Time'
             }
-            
-            if status:
-                params['crm_details'] = 'true'
-                # Use search criteria for status
-                search_criteria = f'(Lead_Status:equals:{status})'
-                params['search_criteria'] = search_criteria
+
+            # Only add status filter if status is specified
+            if status is not None:
+                params['criteria'] = f'(Lead_Status:equals:{status})'
             
             headers = self.auth.get_headers()
             response = requests.get(url, headers=headers, params=params)

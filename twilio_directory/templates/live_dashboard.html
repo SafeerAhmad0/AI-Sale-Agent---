@@ -282,6 +282,203 @@
         .notification.success { background: #28a745; }
         .notification.error { background: #dc3545; }
 
+        /* Phone Feed Styles */
+        .phone-feed-section {
+            margin-top: 20px;
+        }
+
+        .phone-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .phone-textarea:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .feed-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .phone-queue {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .queue-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .phone-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .phone-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .phone-item.calling {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .phone-item.completed {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .phone-item.failed {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .phone-status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending { background: #e9ecef; color: #495057; }
+        .status-calling { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+
+        /* Active Calls Styles */
+        .active-calls {
+            min-height: 150px;
+        }
+
+        .call-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .call-info {
+            flex: 1;
+        }
+
+        .call-phone {
+            font-weight: bold;
+            font-size: 16px;
+            color: #495057;
+        }
+
+        .call-duration {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .call-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Recordings Styles */
+        .recordings-list {
+            min-height: 200px;
+        }
+
+        .recording-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .recording-info {
+            flex: 1;
+        }
+
+        .recording-phone {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .recording-date {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .recording-duration {
+            font-size: 12px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .recording-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .play-btn {
+            background: #28a745;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .play-btn:hover {
+            background: #218838;
+        }
+
+        .download-btn {
+            background: #17a2b8;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .download-btn:hover {
+            background: #138496;
+        }
+
         /* Call Interface Modal */
         .modal {
             display: none;
@@ -410,6 +607,57 @@
                     <button class="btn btn-success" onclick="makeTestCall()">📞 Make Test Call</button>
                     <button class="btn" onclick="getNextLead()">🎯 Get Next Lead</button>
                     <button class="btn" onclick="showCallInterface()">📱 Manual Call Interface</button>
+                    <button class="btn" onclick="debugCRM()" style="background: #e53e3e;">🔍 Debug CRM</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Phone Number Feed -->
+        <div class="panel" style="margin-bottom: 30px;">
+            <div class="panel-header">
+                <h3>📞 Manual Phone Number Feed</h3>
+            </div>
+            <div class="panel-content">
+                <div class="phone-feed-section">
+                    <div class="input-group">
+                        <textarea id="bulk-phone-input" placeholder="Enter phone numbers (one per line):&#10;+911234567890&#10;+912345678901&#10;+913456789012" class="phone-textarea" rows="6"></textarea>
+                        <div class="feed-controls">
+                            <button class="btn" onclick="processBulkNumbers()">📋 Process Numbers</button>
+                            <button class="btn" onclick="clearPhoneFeed()">🗑️ Clear</button>
+                            <button class="btn" onclick="startBulkCalling()">🚀 Start Bulk Calling</button>
+                        </div>
+                    </div>
+                    <div id="phone-queue" class="phone-queue">
+                        <div class="queue-header">📱 Phone Queue (<span id="queue-count">0</span> numbers)</div>
+                        <div id="phone-list" class="phone-list">
+                            No numbers in queue
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Call Monitoring -->
+        <div class="panel" style="margin-bottom: 30px;">
+            <div class="panel-header">
+                <h3>📡 Live Call Monitoring</h3>
+            </div>
+            <div class="panel-content">
+                <div id="active-calls" class="active-calls">
+                    <div class="empty-state">No active calls</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call Recordings -->
+        <div class="panel" style="margin-bottom: 30px;">
+            <div class="panel-header">
+                <h3>🎙️ Call Recordings</h3>
+                <button class="btn btn-small" onclick="refreshRecordings()">🔄 Refresh</button>
+            </div>
+            <div class="panel-content">
+                <div id="recordings-list" class="recordings-list">
+                    <div class="loading">Loading recordings...</div>
                 </div>
             </div>
         </div>
@@ -505,6 +753,8 @@
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadLiveData();
+            loadActiveCalls();
+            refreshRecordings();
             startAutoRefresh();
         });
 
@@ -690,6 +940,8 @@
         function startAutoRefresh() {
             refreshInterval = setInterval(() => {
                 loadLiveData();
+                loadActiveCalls();
+                // Don't auto-refresh recordings (too expensive)
             }, 30000); // Refresh every 30 seconds
         }
 
@@ -833,6 +1085,311 @@
                 startAutoRefresh();
             }
         });
+
+        async function debugCRM() {
+            try {
+                showNotification('🔍 Debugging CRM connection...', 'success');
+
+                const response = await fetch('/api/debug/crm');
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Show detailed debug info
+                    let message = `✅ CRM Debug Results:\n`;
+                    message += `Connection: ${result.connection_test ? 'OK' : 'FAILED'}\n`;
+                    message += `Lead Counts: ${JSON.stringify(result.lead_counts, null, 2)}\n`;
+
+                    if (result.sample_lead && typeof result.sample_lead === 'object') {
+                        message += `Sample Lead: ${result.sample_lead.name} (${result.sample_lead.phone})`;
+                    }
+
+                    console.log('CRM Debug Details:', result);
+                    showNotification('🔍 Check browser console for full debug details', 'success');
+
+                    // Also show in alert for immediate visibility
+                    alert(message);
+                } else {
+                    const error = result.error || 'Unknown error';
+                    showNotification(`❌ CRM Debug failed: ${error}`, 'error');
+                    console.error('CRM Debug Error:', result);
+                }
+            } catch (error) {
+                showNotification(`❌ Debug error: ${error.message}`, 'error');
+                console.error('Debug Error:', error);
+            }
+        }
+
+        // Phone Feed Functions
+        let phoneQueue = [];
+
+        function processBulkNumbers() {
+            const input = document.getElementById('bulk-phone-input').value.trim();
+
+            if (!input) {
+                showNotification('❌ Please enter phone numbers', 'error');
+                return;
+            }
+
+            // Parse numbers (split by lines or commas)
+            const numbers = input.split(/[\n,]/)
+                .map(num => num.trim())
+                .filter(num => num.length > 0)
+                .map(num => {
+                    // Auto-format phone numbers
+                    if (!num.startsWith('+')) {
+                        if (num.length === 10) {
+                            return '+91' + num; // Indian number
+                        } else if (num.length === 11 && num.startsWith('0')) {
+                            return '+92' + num.substring(1); // Pakistani number
+                        } else {
+                            return '+' + num;
+                        }
+                    }
+                    return num;
+                });
+
+            // Add to queue
+            numbers.forEach(num => {
+                if (!phoneQueue.find(item => item.phone === num)) {
+                    phoneQueue.push({
+                        phone: num,
+                        status: 'pending',
+                        id: Date.now() + Math.random()
+                    });
+                }
+            });
+
+            updatePhoneQueueDisplay();
+            showNotification(`📋 Added ${numbers.length} numbers to queue`, 'success');
+        }
+
+        function clearPhoneFeed() {
+            document.getElementById('bulk-phone-input').value = '';
+            phoneQueue = [];
+            updatePhoneQueueDisplay();
+            showNotification('🗑️ Phone feed cleared', 'success');
+        }
+
+        function updatePhoneQueueDisplay() {
+            const queueCount = document.getElementById('queue-count');
+            const phoneList = document.getElementById('phone-list');
+
+            queueCount.textContent = phoneQueue.length;
+
+            if (phoneQueue.length === 0) {
+                phoneList.innerHTML = 'No numbers in queue';
+                return;
+            }
+
+            phoneList.innerHTML = phoneQueue.map(item => `
+                <div class="phone-item ${item.status}">
+                    <span class="phone-number">${item.phone}</span>
+                    <div>
+                        <span class="phone-status status-${item.status}">${item.status.toUpperCase()}</span>
+                        ${item.status === 'pending' ? `<button class="btn btn-small" onclick="callSingleNumber('${item.id}')">📞 Call</button>` : ''}
+                        <button class="btn btn-small" onclick="removeFromQueue('${item.id}')">❌</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function startBulkCalling() {
+            if (phoneQueue.length === 0) {
+                showNotification('❌ No numbers in queue', 'error');
+                return;
+            }
+
+            const pendingNumbers = phoneQueue.filter(item => item.status === 'pending');
+            if (pendingNumbers.length === 0) {
+                showNotification('❌ No pending numbers to call', 'error');
+                return;
+            }
+
+            showNotification(`🚀 Starting bulk calling for ${pendingNumbers.length} numbers...`, 'success');
+
+            // Call numbers one by one with delay
+            for (let i = 0; i < pendingNumbers.length; i++) {
+                const item = pendingNumbers[i];
+                await callSingleNumber(item.id);
+
+                // Wait 10 seconds between calls
+                if (i < pendingNumbers.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                }
+            }
+        }
+
+        async function callSingleNumber(itemId) {
+            const item = phoneQueue.find(q => q.id == itemId);
+            if (!item) return;
+
+            try {
+                item.status = 'calling';
+                updatePhoneQueueDisplay();
+
+                showNotification(`📞 Calling ${item.phone}...`, 'success');
+
+                const response = await fetch('/api/calls/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: item.phone,
+                        lead_name: `Bulk Call ${item.phone}`
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    item.status = 'completed';
+                    item.call_sid = result.call_sid;
+                    showNotification(`✅ Call initiated to ${item.phone}`, 'success');
+                } else {
+                    item.status = 'failed';
+                    showNotification(`❌ Call failed to ${item.phone}: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                item.status = 'failed';
+                showNotification(`❌ Error calling ${item.phone}: ${error.message}`, 'error');
+            }
+
+            updatePhoneQueueDisplay();
+        }
+
+        function removeFromQueue(itemId) {
+            phoneQueue = phoneQueue.filter(item => item.id != itemId);
+            updatePhoneQueueDisplay();
+        }
+
+        // Call Monitoring Functions
+        async function loadActiveCalls() {
+            try {
+                const response = await fetch('/api/calls/active');
+                const result = await response.json();
+
+                const container = document.getElementById('active-calls');
+
+                if (result.success && result.calls && result.calls.length > 0) {
+                    container.innerHTML = result.calls.map(call => `
+                        <div class="call-item">
+                            <div class="call-info">
+                                <div class="call-phone">${call.to}</div>
+                                <div class="call-duration">Duration: ${call.duration || 'In Progress'} | Status: ${call.status}</div>
+                            </div>
+                            <div class="call-actions">
+                                <button class="btn btn-small" onclick="endCall('${call.sid}')">🔴 End Call</button>
+                                <button class="btn btn-small" onclick="getCallDetails('${call.sid}')">📊 Details</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state">No active calls</div>';
+                }
+            } catch (error) {
+                console.error('Error loading active calls:', error);
+            }
+        }
+
+        // Recording Functions
+        async function refreshRecordings() {
+            try {
+                showNotification('🔄 Loading recordings...', 'success');
+
+                const response = await fetch('/api/recordings');
+                const result = await response.json();
+
+                const container = document.getElementById('recordings-list');
+
+                if (result.success && result.recordings && result.recordings.length > 0) {
+                    container.innerHTML = result.recordings.map(recording => `
+                        <div class="recording-item">
+                            <div class="recording-info">
+                                <div class="recording-phone">${recording.phone || recording.to || 'Unknown'}</div>
+                                <div class="recording-date">${new Date(recording.date_created).toLocaleString()}</div>
+                                <div class="recording-duration">Duration: ${recording.duration || 'Unknown'}</div>
+                            </div>
+                            <div class="recording-controls">
+                                <button class="play-btn" onclick="playRecording('${recording.uri}')">▶️ Play</button>
+                                <button class="download-btn" onclick="downloadRecording('${recording.uri}', '${recording.sid}')">⬇️ Download</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    showNotification(`📊 Loaded ${result.recordings.length} recordings`, 'success');
+                } else {
+                    container.innerHTML = '<div class="empty-state">No recordings found</div>';
+                    showNotification('ℹ️ No recordings available', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading recordings:', error);
+                showNotification(`❌ Error loading recordings: ${error.message}`, 'error');
+            }
+        }
+
+        function playRecording(uri) {
+            // Create audio element and play
+            const audio = new Audio(uri);
+            audio.play().catch(error => {
+                showNotification('❌ Failed to play recording', 'error');
+                console.error('Audio playback error:', error);
+            });
+        }
+
+        function downloadRecording(uri, sid) {
+            // Create download link
+            const link = document.createElement('a');
+            link.href = uri;
+            link.download = `recording-${sid}.wav`;
+            link.click();
+        }
+
+        async function endCall(callSid) {
+            try {
+                showNotification(`🔴 Ending call ${callSid}...`, 'success');
+
+                const response = await fetch(`/api/calls/end/${callSid}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showNotification('✅ Call ended successfully', 'success');
+                    // Refresh active calls
+                    loadActiveCalls();
+                } else {
+                    showNotification(`❌ Failed to end call: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error ending call: ${error.message}`, 'error');
+            }
+        }
+
+        async function getCallDetails(callSid) {
+            try {
+                showNotification(`📊 Getting call details for ${callSid}...`, 'success');
+
+                const response = await fetch(`/api/calls/details/${callSid}`);
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    const call = result.call;
+                    const details = `
+Call Details:
+SID: ${call.sid}
+To: ${call.to}
+Status: ${call.status}
+Duration: ${call.duration || 'In Progress'}
+Price: ${call.price || 'N/A'}
+                    `;
+                    alert(details);
+                } else {
+                    showNotification(`❌ Failed to get call details: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`❌ Error getting call details: ${error.message}`, 'error');
+            }
+        }
 
         // Close modal when clicking outside
         window.onclick = function(event) {
