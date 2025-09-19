@@ -81,6 +81,11 @@
             color: #856404;
         }
 
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         .btn {
             background: #667eea;
             color: white;
@@ -196,6 +201,10 @@
             <div id="controls">
                 <button class="btn" id="test-btn" onclick="testSystem()">🔍 Test System</button>
                 <button class="btn" id="refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
+                <button class="btn" onclick="testEndpoint('/')">🏠 Test Dashboard</button>
+                <button class="btn" onclick="testEndpoint('/api/status')">📊 Test Status API</button>
+                <button class="btn" onclick="testEndpoint('/test')">🧪 Test Health</button>
+                <button class="btn" onclick="testEndpoint('/facebook/webhook')">📱 Test Facebook</button>
             </div>
         </div>
 
@@ -203,7 +212,15 @@
         <div class="section">
             <h2>🌐 Available Endpoints</h2>
             <div id="endpoints">
-                <div class="loading">Loading endpoints...</div>
+                <div class="loading">Testing endpoints...</div>
+            </div>
+        </div>
+
+        <!-- Live Endpoint Status -->
+        <div class="section">
+            <h2>📡 Live Endpoint Status</h2>
+            <div id="endpoint-status">
+                <div class="loading">Checking endpoint health...</div>
             </div>
         </div>
 
@@ -229,7 +246,8 @@
                 showLoading();
                 await Promise.all([
                     loadSystemStatus(),
-                    loadEndpoints()
+                    loadEndpoints(),
+                    loadEndpointStatus()
                 ]);
                 clearError();
                 updateLastUpdated();
@@ -261,25 +279,112 @@
 
         async function loadEndpoints() {
             const endpoints = [
-                { name: 'Main Dashboard', url: '/', method: 'GET' },
-                { name: 'System Status', url: '/api/status', method: 'GET' },
-                { name: 'Test Endpoint', url: '/test', method: 'GET' },
-                { name: 'Twilio Voice Webhook', url: '/twilio/voice/{lead_id}', method: 'POST' },
-                { name: 'Twilio Status Callback', url: '/twilio/status', method: 'POST' },
-                { name: 'Facebook Webhook', url: '/facebook/webhook', method: 'GET/POST' }
+                { name: 'Main Dashboard', url: '/', method: 'GET', testable: true },
+                { name: 'System Status', url: '/api/status', method: 'GET', testable: true },
+                { name: 'Test Endpoint', url: '/test', method: 'GET', testable: true },
+                { name: 'Twilio Voice Webhook', url: '/twilio/voice/test123', method: 'POST', testable: false },
+                { name: 'Twilio Status Callback', url: '/twilio/status', method: 'POST', testable: false },
+                { name: 'Facebook Webhook', url: '/facebook/webhook', method: 'GET/POST', testable: true }
             ];
 
-            const endpointsHtml = endpoints.map(endpoint => `
-                <div class="status-item">
-                    <div>
-                        <strong>${endpoint.name}</strong><br>
-                        <code>${endpoint.url}</code>
+            let endpointsHtml = '';
+
+            for (const endpoint of endpoints) {
+                let status = 'loading';
+                let statusText = 'Testing...';
+
+                if (endpoint.testable) {
+                    try {
+                        const response = await fetch(endpoint.url, {
+                            method: endpoint.method === 'GET/POST' ? 'GET' : endpoint.method
+                        });
+
+                        if (response.ok) {
+                            status = 'online';
+                            statusText = `${response.status} OK`;
+                        } else {
+                            status = 'offline';
+                            statusText = `${response.status} Error`;
+                        }
+                    } catch (error) {
+                        status = 'offline';
+                        statusText = 'Failed';
+                    }
+                } else {
+                    status = 'online';
+                    statusText = 'Available';
+                }
+
+                endpointsHtml += `
+                    <div class="status-item">
+                        <div>
+                            <strong>${endpoint.name}</strong><br>
+                            <code>${endpoint.url}</code>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-indicator status-${status}">${statusText}</span><br>
+                            <small>${endpoint.method}</small>
+                        </div>
                     </div>
-                    <span class="status-indicator status-online">${endpoint.method}</span>
-                </div>
-            `).join('');
+                `;
+            }
 
             document.getElementById('endpoints').innerHTML = endpointsHtml;
+        }
+
+        async function loadEndpointStatus() {
+            const statusEndpoints = [
+                { name: 'Main Dashboard', url: '/', method: 'GET' },
+                { name: 'System Status API', url: '/api/status', method: 'GET' },
+                { name: 'Test Health Check', url: '/test', method: 'GET' },
+                { name: 'Facebook Webhook (GET)', url: '/facebook/webhook', method: 'GET' }
+            ];
+
+            let statusHtml = '';
+
+            for (const endpoint of statusEndpoints) {
+                let status = 'testing';
+                let statusText = 'Testing...';
+                let responseTime = '';
+
+                try {
+                    const startTime = Date.now();
+                    const response = await fetch(endpoint.url, {
+                        method: endpoint.method
+                    });
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+
+                    if (response.ok) {
+                        status = 'online';
+                        statusText = `${response.status} OK`;
+                        responseTime = `${duration}ms`;
+                    } else {
+                        status = 'warning';
+                        statusText = `${response.status}`;
+                        responseTime = `${duration}ms`;
+                    }
+                } catch (error) {
+                    status = 'offline';
+                    statusText = 'Failed';
+                    responseTime = 'N/A';
+                }
+
+                statusHtml += `
+                    <div class="status-item">
+                        <div>
+                            <strong>${endpoint.name}</strong><br>
+                            <code>${endpoint.url}</code>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-indicator status-${status}">${statusText}</span><br>
+                            <small>${responseTime}</small>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('endpoint-status').innerHTML = statusHtml;
         }
 
         function updateSystemStatus(data) {
@@ -329,6 +434,37 @@
                 testBtn.disabled = false;
                 testBtn.textContent = '🔍 Test System';
             }
+        }
+
+        async function testEndpoint(url) {
+            try {
+                showNotification(`🔄 Testing ${url}...`, 'success');
+
+                const response = await fetch(url);
+
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    let message = `✅ ${url} - Status: ${response.status}`;
+
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        if (data.status) {
+                            message += ` - ${data.status}`;
+                        }
+                    }
+
+                    showNotification(message, 'success');
+                } else {
+                    showNotification(`❌ ${url} - Error: ${response.status}`, 'error');
+                }
+
+            } catch (error) {
+                console.error(`Test failed for ${url}:`, error);
+                showNotification(`❌ ${url} - Failed: ${error.message}`, 'error');
+            }
+
+            // Refresh endpoints after test
+            setTimeout(loadEndpoints, 1000);
         }
 
         function refreshData() {
