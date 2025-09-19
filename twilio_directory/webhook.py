@@ -57,6 +57,46 @@ def index():
             ]
         }
 
+@app.route("/facebook/webhook", methods=["GET", "POST"])
+def facebook_webhook():
+    """Handle Facebook Lead Ads webhooks."""
+    try:
+        from facebook.lead_ads import FacebookLeadAds
+
+        fb_leads = FacebookLeadAds()
+
+        if request.method == "GET":
+            # Webhook verification
+            verify_token = request.args.get('hub.verify_token')
+            challenge = request.args.get('hub.challenge')
+
+            verified_challenge = fb_leads.verify_webhook(verify_token, challenge)
+            if verified_challenge:
+                return verified_challenge
+            else:
+                return "Verification failed", 403
+
+        elif request.method == "POST":
+            # Process webhook data
+            data = request.get_json()
+            if fb_leads.process_webhook(data):
+                return "OK", 200
+            else:
+                return "Processing failed", 500
+
+    except Exception as e:
+        logger.error(f"Error in Facebook webhook: {e}")
+        return "Internal error", 500
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    """AI Sales Agent Dashboard."""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Error rendering dashboard: {e}")
+        return {"error": "Dashboard template not found"}, 500
+
 @app.route("/api/status", methods=["GET"])
 def api_status():
     """API endpoint to check system status."""

@@ -20,6 +20,8 @@ load_dotenv()
 from zoho.crm import ZohoCRM
 from twilio_directory.call import TwilioCallManager
 from gpt.agent import GPTAgent
+from facebook.lead_ads import FacebookLeadAds
+from scheduler.call_scheduler import CallScheduler
 from utils.logger import logger
 
 class AIVoiceSalesAgent:
@@ -29,17 +31,22 @@ class AIVoiceSalesAgent:
         """Initialize all components"""
         try:
             logger.info("Initializing AI Voice Sales Agent...")
-            
+
             # Initialize components
             self.crm = ZohoCRM()
             self.twilio = TwilioCallManager()
             self.gpt = GPTAgent()
-            
+            self.facebook = FacebookLeadAds()
+            self.scheduler = CallScheduler()
+
             # Start webhook server in background
             self.start_webhook_server()
-            
+
+            # Start call scheduler
+            self.start_automation()
+
             logger.info("All components initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize components: {str(e)}")
             raise
@@ -59,7 +66,37 @@ class AIVoiceSalesAgent:
         except Exception as e:
             logger.warning(f"Could not start webhook server: {e}")
             logger.warning("Make sure to run webhook server manually for call handling")
-    
+
+    def start_automation(self):
+        """Start automated lead processing and calling"""
+        try:
+            logger.info("🤖 Starting automation systems...")
+
+            # Start call scheduler
+            self.scheduler.start_scheduler()
+
+            # Subscribe to Facebook webhooks if configured
+            if hasattr(self.facebook, 'access_token') and self.facebook.access_token:
+                self.facebook.subscribe_to_webhooks()
+                logger.info("📱 Facebook Lead Ads automation enabled")
+            else:
+                logger.warning("📱 Facebook Lead Ads not configured - manual lead entry only")
+
+            logger.info("🚀 Automation systems started successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to start automation: {str(e)}")
+
+    def stop_automation(self):
+        """Stop automated systems"""
+        try:
+            logger.info("⏹️ Stopping automation systems...")
+            self.scheduler.stop_scheduler()
+            logger.info("⏹️ Automation stopped")
+
+        except Exception as e:
+            logger.error(f"Error stopping automation: {str(e)}")
+
     def test_connections(self):
         """Test all external service connections"""
         logger.info("Testing external service connections...")
@@ -67,7 +104,8 @@ class AIVoiceSalesAgent:
         results = {
             'zoho': False,
             'twilio': False,
-            'openai': False
+            'openai': False,
+            'facebook': False
         }
         
         # Test Zoho CRM
@@ -87,7 +125,13 @@ class AIVoiceSalesAgent:
             results['openai'] = self.gpt.test_connection()
         except Exception as e:
             logger.error(f"OpenAI test failed: {str(e)}")
-        
+
+        # Test Facebook
+        try:
+            results['facebook'] = self.facebook.test_connection()
+        except Exception as e:
+            logger.error(f"Facebook test failed: {str(e)}")
+
         # Log results
         for service, status in results.items():
             if status:
@@ -296,32 +340,37 @@ def main():
             logger.info(f"Campaign completed. Calls made: {calls_made}")
         
         else:
-            # Default: automatically get lead and make call
-            logger.info("🚀 AI Voice Sales Agent - Auto Mode")
+            # Default: start automation mode
+            logger.info("🚀 AI Voice Sales Agent - Automation Mode")
             logger.info("=" * 50)
-            
+
             # Test connections first
             if not agent.test_connections():
                 logger.error("❌ Connection test failed. Please check your credentials.")
                 sys.exit(1)
-            
-            # Get next lead
-            lead = agent.get_next_lead()
-            if not lead:
-                logger.error("❌ No leads available for calling")
-                sys.exit(1)
-            
-            # Make the call
-            logger.info(f"📞 Making call to: {lead.get('First_Name', 'Unknown')} {lead.get('Last_Name', '')}")
-            success = agent.initiate_call(lead)
-            
-            if success:
-                logger.info("✅ Call initiated successfully!")
-                logger.info("🤖 AI agent will handle the conversation via webhooks")
-                logger.info("📊 Results will be written back to Zoho CRM")
-            else:
-                logger.error("❌ Failed to initiate call")
-                sys.exit(1)
+
+            logger.info("🤖 Starting automated lead qualification system...")
+            logger.info("📱 Monitoring Facebook Lead Ads for new leads...")
+            logger.info("📞 Auto-calling system active...")
+            logger.info("🔄 Real-time CRM sync enabled...")
+            logger.info("")
+            logger.info("🌐 Dashboard available at: https://your-domain.com/dashboard")
+            logger.info("📊 API status: https://your-domain.com/api/status")
+            logger.info("")
+            logger.info("Press Ctrl+C to stop the system")
+
+            try:
+                # Keep the system running
+                while True:
+                    time.sleep(60)
+                    # Print periodic status
+                    queue_status = agent.scheduler.get_queue_status()
+                    logger.info(f"📊 Status - Queue: {queue_status['queue_size']}, Active: {queue_status['active_calls']}, Completed: {queue_status['completed_calls']}")
+
+            except KeyboardInterrupt:
+                logger.info("🛑 Shutting down automation system...")
+                agent.stop_automation()
+                logger.info("✅ System stopped successfully")
     
     except KeyboardInterrupt:
         logger.info("Operation interrupted by user")
